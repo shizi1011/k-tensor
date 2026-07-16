@@ -1,6 +1,9 @@
+/// copy from ggml-impl.h
+
 #pragma once
 
 #include "core.h"
+#include <stdlib.h>
 
 // bitset
 
@@ -93,4 +96,67 @@ static size_t hash_find_or_insert(struct hash_set *hash_set,
 static inline size_t hash(const struct k_tensor *p) {
   // the last 4 bits are always zero due to alignment
   return (size_t)(uintptr_t)p >> 4;
+}
+
+static bool hash_contains(const struct hash_set *hash_set,
+                          struct k_tensor *key) {
+  size_t i = hash_find(hash_set, key);
+  return i != HASHSET_FULL && bitset_get(hash_set->used, i);
+}
+
+static size_t hash_find(const struct hash_set *hash_set,
+                        const struct k_tensor *key) {
+
+  size_t h = hash(key) % hash_set->size;
+
+  // linear probing
+  size_t i = h;
+  while (bitset_get(hash_set->used, i) && hash_set->keys[i] != key) {
+    i = (i + 1) % hash_set->size;
+    if (i == h) {
+      // visited all hash table entries -> not found
+      return HASHSET_FULL;
+    }
+  }
+  return i;
+}
+
+static size_t hash_insert(struct hash_set *hash_set, struct k_tensor *key) {
+
+  size_t h = hash(key) % hash_set->size;
+
+  // linear probing
+  size_t i = h;
+  while (bitset_get(hash_set->used, i)) {
+    if (hash_set->keys[i] == key) {
+      return HASHSET_ALREADY_EXISTS;
+    }
+    i = (i + 1) % hash_set->size;
+    if (i == h) {
+      // visited all hash table entries -> not found
+      abort();
+    }
+  }
+  hash_set->keys[i] = key;
+  return i;
+}
+
+static size_t hash_find_or_insert(struct hash_set *hash_set,
+                                  struct k_tensor *key) {
+  size_t h = hash(key) % hash_set->size;
+
+  // linear probing
+  size_t i = h;
+  while (bitset_get(hash_set->used, i)) {
+    if (hash_set->keys[i] == key) {
+      return i;
+    }
+    i = (i + 1) % hash_set->size;
+    if (i == h) {
+      // visited all hash table entries -> not found
+      abort();
+    }
+  }
+  hash_set->keys[i] = key;
+  return i;
 }
