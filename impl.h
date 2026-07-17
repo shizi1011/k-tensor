@@ -1,5 +1,3 @@
-/// copy from ggml-impl.h
-
 #pragma once
 
 #include "core.h"
@@ -51,8 +49,6 @@ struct k_cgraph {
 
   struct k_tensor **nodes;
   struct k_tensor **leafs;
-  struct k_tensor **grads;
-  struct k_tensor **grad_accs;
 
   int32_t *use_counts;
   struct hash_set visited_hash_set;

@@ -51,6 +51,6 @@ struct k_tensor *new_tensor_3d(struct k_context *ctx, int64_t ne0, int64_t ne1,
                                int64_t ne3);
 
 // cgraph api
-struct k_cgraph *new_graph(struct k_context *ctx, size_t size, bool grads);
-void graph_build_forward(struct k_cgraph *cgraph, struct k_tensor *tensor);
+struct k_cgraph *new_graph(struct k_context *ctx, size_t size);
+void graph_build(struct k_cgraph *cgraph, struct k_tensor *tensor);
 size_t graph_visit_parents(struct k_cgraph *cgraph, struct k_tensor *tensor);
