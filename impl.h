@@ -137,6 +137,7 @@ static size_t hash_insert(struct hash_set *hash_set, struct k_tensor *key) {
       abort();
     }
   }
+  bitset_set(hash_set->used, i);
   hash_set->keys[i] = key;
   return i;
 }
@@ -157,6 +158,7 @@ static size_t hash_find_or_insert(struct hash_set *hash_set,
       abort();
     }
   }
+  bitset_set(hash_set->used, i);
   hash_set->keys[i] = key;
   return i;
 }
