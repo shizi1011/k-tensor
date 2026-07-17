@@ -26,6 +26,8 @@ struct k_tensor {
 
   void *data;
   enum tensor_op op;
+
+  struct k_tensor *src[TENSOR_MAX_SRC];
 };
 static const size_t TENSOR_SIZE = sizeof(struct k_tensor);
 
