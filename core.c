@@ -1,5 +1,7 @@
 #include "core.h"
 #include "impl.h"
+#include <assert.h>
+#include <stdint.h>
 
 // context definition of k-tensor
 struct k_context {
@@ -24,7 +26,7 @@ static const size_t OBJECT_SIZE = sizeof(struct k_object);
 
 // tensor definition of k-tensor
 struct k_tensor {
-  int ne[TENSOR_MAX_DIMS];
+  int64_t ne[TENSOR_MAX_DIMS];
   int nb[TENSOR_MAX_DIMS];
 
   void *data;
@@ -34,7 +36,8 @@ struct k_tensor {
 };
 static const size_t TENSOR_SIZE = sizeof(struct k_tensor);
 
-// function definition
+////////////////////////////////////////////////////////////////////////////////
+
 struct k_context *init_context(struct init_params params) {
   struct k_context *ctx = malloc(sizeof(struct k_context));
   *ctx = (struct k_context){.mem_size = params.mem_size,
@@ -47,6 +50,13 @@ struct k_context *init_context(struct init_params params) {
                             .object_end = NULL};
   return ctx;
 }
+
+void free_context(struct k_context *ctx) {
+  free(ctx->mem_buffer);
+  free(ctx);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 static struct k_object *new_object(struct k_context *ctx, enum object_type type,
                                    size_t size) {
@@ -73,6 +83,8 @@ static struct k_object *new_object(struct k_context *ctx, enum object_type type,
 
   return obj_new;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 struct k_tensor *new_tensor(struct k_context *ctx, int n_dims,
                             const int64_t *ne) {
@@ -121,11 +133,11 @@ static void *incr_ptr(void **ptr, size_t size) {
 static size_t cgraph_nbytes(size_t size) {
   size_t size_needed = hash_size(size * 2);
   void *p = 0;
-  p += sizeof(struct k_cgraph);
-  p += size * sizeof(struct k_tensor *);              // nodes;
-  p += size * sizeof(struct k_tensor *);              // leafs;
-  p += size_needed * sizeof(int32_t);                 // used_counts;
-  p += bitset_size((size_needed) * sizeof(bitset_t)); // hash_used
+  incr_ptr(&p, sizeof(struct k_cgraph));
+  incr_ptr(&p, size * sizeof(struct k_tensor *));              // nodes;
+  incr_ptr(&p, size * sizeof(struct k_tensor *));              // leafs;
+  incr_ptr(&p, size_needed * sizeof(int32_t));                 // used_counts;
+  incr_ptr(&p, bitset_size((size_needed) * sizeof(bitset_t))); // hash_used
   return (size_t)p;
 }
 
@@ -145,6 +157,8 @@ struct k_cgraph *new_cgraph(struct k_context *ctx, size_t size) {
   bitset_t *hash_used =
       incr_ptr(&p, bitset_size(size_needed) * sizeof(bitset_t));
 
+  assert(((size_t)p - (size_t)cgraph == obj_size));
+
   *cgraph = (struct k_cgraph){size,
                               0,
                               0,
@@ -157,8 +171,8 @@ struct k_cgraph *new_cgraph(struct k_context *ctx, size_t size) {
   return cgraph;
 }
 
-size_t k_cgraph_visit_parent(struct k_context *ctx, struct k_cgraph *cgraph,
-                             struct k_tensor *tensor) {
+size_t k_cgraph_visit_parents(struct k_cgraph *cgraph,
+                              struct k_tensor *tensor) {
 
   size_t node_hash_pos = hash_find(&cgraph->visited_hash_set, tensor);
 
@@ -173,7 +187,7 @@ size_t k_cgraph_visit_parent(struct k_context *ctx, struct k_cgraph *cgraph,
   for (int i = 0; i < TENSOR_MAX_SRC; ++i) {
     struct k_tensor *src = tensor->src[i];
     if (src) {
-      size_t src_hash_pos = k_cgraph_visit_parent(ctx, cgraph, src);
+      size_t src_hash_pos = k_cgraph_visit_parents(cgraph, src);
       cgraph->use_counts[src_hash_pos]++;
     }
   }
@@ -188,10 +202,11 @@ size_t k_cgraph_visit_parent(struct k_context *ctx, struct k_cgraph *cgraph,
   return node_hash_pos;
 }
 
-void k_cgraph_build(struct k_context *ctx, struct k_cgraph *cgraph,
-                    struct k_tensor *tensor) {
-  k_cgraph_visit_parent(ctx, cgraph, tensor);
+void k_cgraph_build(struct k_cgraph *cgraph, struct k_tensor *tensor) {
+  k_cgraph_visit_parents(cgraph, tensor);
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 struct hash_set hash_set_new(size_t size) {
   size_t size_needed = hash_size(size);

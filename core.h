@@ -15,7 +15,6 @@
    ~(n - 1)) // round x to the next multiple of n (n is a power of 2)
 
 // basic tensor operations
-
 enum tensor_op {
   TENSOR_OP_NONE,
   TENSOR_OP_ADD,
@@ -25,18 +24,15 @@ enum tensor_op {
 };
 
 // object type
-
 enum object_type { OBJECT_TENSOR, OBJECT_GRAPH };
 
 // init params
-
 struct init_params {
   size_t mem_size;
   void *mem_buffer;
 };
 
 // define core structure
-
 struct k_context;
 struct k_object;
 struct k_cgraph;
@@ -51,6 +47,6 @@ struct k_tensor *new_tensor_3d(struct k_context *ctx, int64_t ne0, int64_t ne1,
                                int64_t ne3);
 
 // cgraph api
-struct k_cgraph *new_graph(struct k_context *ctx, size_t size, bool grads);
-void graph_build_forward(struct k_cgraph *cgraph, struct k_tensor *tensor);
-size_t graph_visit_parents(struct k_cgraph *cgraph, struct k_tensor *tensor);
+struct k_cgraph *new_cgraph(struct k_context *ctx, size_t size);
+void k_cgraph_build(struct k_cgraph *cgraph, struct k_tensor *tensor);
+size_t k_cgraph_visit_parents(struct k_cgraph *cgraph, struct k_tensor *tensor);
