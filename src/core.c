@@ -194,7 +194,7 @@ struct k_cgraph *new_cgraph(struct k_context *ctx, size_t size) {
   bitset_t *hash_used =
       incr_ptr(&p, bitset_size(size_needed) * sizeof(bitset_t));
 
-  assert(((size_t)p - (size_t)cgraph == obj_size));
+  assert((size_t)((char *)p - (char *)cgraph) == obj_size);
 
   *cgraph = (struct k_cgraph){size,
                               0,
