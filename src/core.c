@@ -160,8 +160,9 @@ struct k_tensor *tensor_div(struct k_context *ctx, struct k_tensor *a,
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void *incr_ptr(void **ptr, size_t size) {
-  *ptr = (void *)((char *)ptr + size);
+static void *incr_ptr(void **p, size_t size) {
+  void *ptr = *p;
+  *p = (void *)((char *)ptr + size);
   return ptr;
 }
 
