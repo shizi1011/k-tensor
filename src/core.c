@@ -101,10 +101,18 @@ struct k_tensor *new_tensor(struct k_context *ctx, int n_dims,
   struct k_tensor *result =
       (struct k_tensor *)((char *)ctx->mem_buffer + obj_new->offs);
 
-  *result = (struct k_tensor){.ne = {0, 0, 0},
+  *result = (struct k_tensor){.ne = {1, 1, 1},
                               .nb = {0, 0, 0},
                               .data = (void *)(result + 1),
                               .op = TENSOR_OP_NONE};
+  for (int i = 0; i < n_dims; ++i) {
+    result->ne[i] = ne[i];
+  }
+  result->nb[0] = sizeof(float);
+  for (int i = 1; i < TENSOR_MAX_DIMS; ++i) {
+    result->nb[i] = result->nb[i - 1] * result->ne[i - 1];
+  }
+
   ctx->n_objects++;
 
   return result;
