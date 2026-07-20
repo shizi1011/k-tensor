@@ -170,10 +170,11 @@ static size_t cgraph_nbytes(size_t size) {
   size_t size_needed = hash_size(size * 2);
   void *p = 0;
   incr_ptr(&p, sizeof(struct k_cgraph));
-  incr_ptr(&p, size * sizeof(struct k_tensor *));              // nodes;
-  incr_ptr(&p, size * sizeof(struct k_tensor *));              // leafs;
-  incr_ptr(&p, size_needed * sizeof(int32_t));                 // used_counts;
-  incr_ptr(&p, bitset_size((size_needed) * sizeof(bitset_t))); // hash_used
+  incr_ptr(&p, size * sizeof(struct k_tensor *));            // nodes;
+  incr_ptr(&p, size * sizeof(struct k_tensor *));            // leafs;
+  incr_ptr(&p, size_needed * sizeof(struct k_tensor *));     // hash_key_ptrs;
+  incr_ptr(&p, size_needed * sizeof(int32_t));               // used_counts;
+  incr_ptr(&p, bitset_size(size_needed) * sizeof(bitset_t)); // hash_used
   return (size_t)p;
 }
 
