@@ -125,6 +125,41 @@ struct k_tensor *new_tensor_3d(struct k_context *ctx, int64_t ne0, int64_t ne1,
   return new_tensor(ctx, 2, ne);
 }
 
+struct k_tensor *tensor_add(struct k_context *ctx, struct k_tensor *a,
+                            struct k_tensor *b) {
+  struct k_tensor *result = new_tensor(ctx, TENSOR_MAX_DIMS, a->ne);
+  result->src[0] = a;
+  result->src[1] = b;
+  result->op = TENSOR_OP_ADD;
+  return result;
+}
+struct k_tensor *tensor_sub(struct k_context *ctx, struct k_tensor *a,
+                            struct k_tensor *b) {
+  struct k_tensor *result = new_tensor(ctx, TENSOR_MAX_DIMS, a->ne);
+  result->src[0] = a;
+  result->src[1] = b;
+  result->op = TENSOR_OP_ADD;
+  return result;
+}
+struct k_tensor *tensor_mul(struct k_context *ctx, struct k_tensor *a,
+                            struct k_tensor *b) {
+  struct k_tensor *result = new_tensor(ctx, TENSOR_MAX_DIMS, a->ne);
+  result->src[0] = a;
+  result->src[1] = b;
+  result->op = TENSOR_OP_ADD;
+  return result;
+}
+struct k_tensor *tensor_div(struct k_context *ctx, struct k_tensor *a,
+                            struct k_tensor *b) {
+  struct k_tensor *result = new_tensor(ctx, TENSOR_MAX_DIMS, a->ne);
+  result->src[0] = a;
+  result->src[1] = b;
+  result->op = TENSOR_OP_ADD;
+  return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 static void *incr_ptr(void **ptr, size_t size) {
   *ptr = (void *)((char *)ptr + size);
   return ptr;
@@ -252,4 +287,32 @@ size_t hash_size(size_t min_sz) {
 // remove all elements from the hash set
 void hash_set_reset(struct hash_set *hash_set) {
   memset(hash_set->used, 0, bitset_size(hash_set->size) * sizeof(bitset_t));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+int main() {
+  struct init_params params = {4096, NULL};
+  struct k_context *ctx = init_context(params);
+
+  struct k_tensor *tensorA = new_tensor_2d(ctx, 2, 2);
+  struct k_tensor *tensorB = new_tensor_2d(ctx, 2, 2);
+  const float arrayA[4] = {1, 3, 5, 7};
+  const float arrayB[4] = {2, 4, 6, 8};
+  memcpy(tensorA->data, arrayA, 4 * sizeof(float));
+  memcpy(tensorB->data, arrayB, 4 * sizeof(float));
+  float arrayC[4];
+  // memcpy(arrayC, tensorA->data, 4 * sizeof(float));
+  struct k_object *obj = ctx->object_begin;
+  while (obj != NULL) {
+    memcpy(arrayC, ctx->mem_buffer + obj->offs + TENSOR_SIZE,
+           4 * sizeof(float));
+    for (int i = 0; i < 4; ++i) {
+      printf("%f ", arrayC[i]);
+    }
+    obj = obj->next;
+    printf("\n");
+  }
+
+  free_context(ctx);
 }
