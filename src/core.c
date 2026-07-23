@@ -2,6 +2,7 @@
 #include "impl.h"
 #include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
 
 // context definition of k-tensor
 struct k_context {
@@ -133,6 +134,10 @@ struct k_tensor *new_tensor_3d(struct k_context *ctx, int64_t ne0, int64_t ne1,
   return new_tensor(ctx, 2, ne);
 }
 
+//
+// tensor operations
+//
+
 struct k_tensor *tensor_add(struct k_context *ctx, struct k_tensor *a,
                             struct k_tensor *b) {
   struct k_tensor *result = new_tensor(ctx, TENSOR_MAX_DIMS, a->ne);
@@ -146,7 +151,7 @@ struct k_tensor *tensor_sub(struct k_context *ctx, struct k_tensor *a,
   struct k_tensor *result = new_tensor(ctx, TENSOR_MAX_DIMS, a->ne);
   result->src[0] = a;
   result->src[1] = b;
-  result->op = TENSOR_OP_ADD;
+  result->op = TENSOR_OP_SUB;
   return result;
 }
 struct k_tensor *tensor_mul(struct k_context *ctx, struct k_tensor *a,
@@ -154,7 +159,7 @@ struct k_tensor *tensor_mul(struct k_context *ctx, struct k_tensor *a,
   struct k_tensor *result = new_tensor(ctx, TENSOR_MAX_DIMS, a->ne);
   result->src[0] = a;
   result->src[1] = b;
-  result->op = TENSOR_OP_ADD;
+  result->op = TENSOR_OP_MUL;
   return result;
 }
 struct k_tensor *tensor_div(struct k_context *ctx, struct k_tensor *a,
@@ -162,7 +167,7 @@ struct k_tensor *tensor_div(struct k_context *ctx, struct k_tensor *a,
   struct k_tensor *result = new_tensor(ctx, TENSOR_MAX_DIMS, a->ne);
   result->src[0] = a;
   result->src[1] = b;
-  result->op = TENSOR_OP_ADD;
+  result->op = TENSOR_OP_DIV;
   return result;
 }
 
@@ -249,6 +254,7 @@ size_t k_cgraph_visit_parents(struct k_cgraph *cgraph,
 
 void k_cgraph_build(struct k_cgraph *cgraph, struct k_tensor *tensor) {
   k_cgraph_visit_parents(cgraph, tensor);
+  abort();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
